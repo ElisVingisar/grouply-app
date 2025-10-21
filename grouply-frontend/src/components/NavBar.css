@@ -1,0 +1,79 @@
+.nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background:
+            linear-gradient(to bottom,
+            color-mix(in srgb, Canvas 92%, transparent),
+            color-mix(in srgb, Canvas 100%, transparent));
+    color: CanvasText;
+    border-bottom: 1px solid ButtonBorder;
+    box-shadow: 0 2px 10px color-mix(in srgb, CanvasText 6%, transparent);
+    backdrop-filter: saturate(115%) blur(6px);
+}
+
+.nav__inner {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 12px 20px;
+}
+
+.nav__brand {
+    text-decoration: none;
+    color: inherit;
+    font-weight: 700;
+    letter-spacing: .2px;
+}
+
+.nav__links {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+}
+
+.nav__link {
+    position: relative;
+    text-decoration: none;
+    color: inherit;
+    opacity: .85;
+    padding: 6px 2px;
+    transition: opacity .15s ease;
+}
+.nav__link:hover { opacity: 1; }
+
+.nav__link.is-active::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 2px;
+    background: currentColor;
+    opacity: .6;
+    border-radius: 2px;
+}
+
+.nav__actions {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+}
+
+.nav__btn {
+    appearance: none;
+    border: 1px solid ButtonBorder;
+    background: color-mix(in srgb, Canvas 88%, transparent);
+    color: CanvasText;
+    text-decoration: none;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-weight: 600;
+    line-height: 1;
+}
+.nav__btn:hover {
+    background: color-mix(in srgb, Canvas 78%, transparent);
+}
+
+@media (max-width: 600px) {
+    .nav__inner { gap: 16px; padding: 10px 14px; }
+    .nav__links { gap: 14px; }
+}

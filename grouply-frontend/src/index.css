@@ -1,0 +1,102 @@
+:root { color-scheme: light dark; }
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    transition: transform 100ms ease, box-shadow 120ms ease;
+}
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+}
+
+.card-image img {
+    width: 100%;
+    height: 164px;
+    object-fit: cover;
+    display: block;
+}
+
+.card-body {
+    padding: 12px 14px 14px;
+}
+
+.card-title {
+    margin: 0 0 6px;
+    font-size: 1.05rem;
+    line-height: 1.2;
+}
+
+.card-meta {
+    margin: 0 0 8px;
+    font-size: 0.9rem;
+    opacity: 0.85;
+}
+
+.card-desc {
+    margin: 0;
+    font-size: 0.95rem;
+    opacity: 0.9;
+}
+
+:root {
+    color-scheme: light dark;
+
+    /* panel / overlay */
+    --overlay: rgba(0,0,0,0.35);
+    --panel-bg: #ffffff;
+    --panel-fg: #0f1115;
+    --panel-border: rgba(0,0,0,0.12);
+    --shadow-elev: 0 10px 30px rgba(0,0,0,0.25);
+
+    /* controls */
+    --field-bg: #ffffff;
+    --field-fg: #0f1115;
+    --field-border: rgba(0,0,0,0.15);
+    --field-border-focus: #6aa7ff;
+
+    --btn-bg: #1f6feb;
+    --btn-fg: #ffffff;
+    --btn-bg-muted: #eeeeee;
+    --btn-fg-muted: #111111;
+    --btn-danger-bg: #e5534b;
+    --btn-danger-fg: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --overlay: rgba(0,0,0,0.5);
+        --panel-bg: #111417;
+        --panel-fg: #e9eef3;
+        --panel-border: rgba(255,255,255,0.12);
+        --shadow-elev: 0 10px 30px rgba(0,0,0,0.35);
+
+        --field-bg: #161a1e;
+        --field-fg: #e9eef3;
+        --field-border: rgba(255,255,255,0.16);
+        --field-border-focus: #8ab4ff;
+
+        --btn-bg: #3b82f6;
+        --btn-fg: #ffffff;
+        --btn-bg-muted: #2a2f36;
+        --btn-fg-muted: #e9eef3;
+        --btn-danger-bg: #ef4444;
+        --btn-danger-fg: #ffffff;
+    }
+}

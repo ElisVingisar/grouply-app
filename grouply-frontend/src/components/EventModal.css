@@ -1,0 +1,97 @@
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--overlay);
+    backdrop-filter: blur(2px);
+    display: grid;
+    place-items: center;
+    z-index: 1000;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.modal-panel {
+    width: 100%;
+    max-width: 720px;
+    box-sizing: border-box;
+    background: var(--panel-bg);
+    color: var(--panel-fg);
+    border: 1px solid var(--panel-border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-elev);
+    max-height: 90vh;
+    overflow: auto;
+    overflow-x: hidden;
+    scrollbar-gutter: stable both-edges;
+}
+
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    justify-content: center;
+    align-items: stretch;
+}
+
+.modal-content {
+    padding: 16px;
+}
+
+.modal-panel img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+.modal-title {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.input,
+.textarea {
+    width: 100%;
+    background: var(--field-bg);
+    color: var(--field-fg);
+    border: 1px solid var(--field-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    outline: none;
+    resize: none;
+}
+.input:focus,
+.textarea:focus {
+    border-color: var(--field-border-focus);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--field-border-focus) 30%, transparent);
+}
+
+.btn {
+    appearance: none;
+    border: 0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-primary { background: var(--btn-bg); color: var(--btn-fg); }
+.btn-muted   { background: var(--btn-bg-muted); color: var(--btn-fg-muted); }
+.btn-danger  { background: var(--btn-danger-bg); color: var(--btn-danger-fg); }
+.btn:disabled { opacity: 0.6; cursor: default; }
+
+/* drag area */
+.dropzone {
+    border: 2px dashed #888;
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    user-select: none;
+    transition: border-color .15s ease;
+    cursor: pointer;
+}
+.dropzone--active { border-color: #6aa7ff; }
