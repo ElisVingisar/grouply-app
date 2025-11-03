@@ -5,7 +5,7 @@ spring:
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/grouply}
     username: ${DATABASE_USERNAME:grouply}
-    password: ${DATABASE_PASSWORD:grouply}
+    password: ${DATABASE_PASSWORD:pass}
 
   jpa:
     hibernate:

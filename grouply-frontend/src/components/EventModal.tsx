@@ -179,52 +179,82 @@ export default function EventModal({event, onClose, onSaved, onDeleted,}: {
                                 display: "flex",
                                 justifyContent: "space-between",
                                 alignItems: "center",
-                                gap: 8,
-                                marginBottom: 12,
+                                marginBottom: 24
                             }}
                         >
                             <h2 id="event-modal-title" className="modal-title">
                                 Edit event
                             </h2>
-                            <button className="btn btn-muted" onClick={onClose} aria-label="Close">
+                            <button className="btn btn-icon" onClick={onClose} aria-label="Close">
                                 ✕
                             </button>
                         </div>
 
-                        <div className="modal-body">
-                            <label>
-                                <div>Title *</div>
-                                <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} required />
-                            </label>
+                        <div className="form-grid">
+                            <div className="field">
+                                <label className="field__label">Title *</label>
+                                <input 
+                                    className="input" 
+                                    value={title} 
+                                    onChange={(e) => setTitle(e.target.value)} 
+                                    placeholder="Event title"
+                                    required 
+                                />
+                            </div>
 
-                            <label>
-                                <div>Description</div>
-                                <textarea className="textarea" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
-                            </label>
+                            <div className="field">
+                                <label className="field__label">Description</label>
+                                <textarea 
+                                    className="textarea" 
+                                    value={description} 
+                                    onChange={(e) => setDescription(e.target.value)} 
+                                    rows={3}
+                                    placeholder="Event description (optional)"
+                                />
+                            </div>
 
-                            <label>
-                                <div>Date & time</div>
-                                <input className="input" type="datetime-local" value={dateTime} onChange={(e) => setDateTime(e.target.value)} />
-                            </label>
+                            <div className="field">
+                                <label className="field__label">Date & time</label>
+                                <input 
+                                    className="input" 
+                                    type="datetime-local" 
+                                    value={dateTime} 
+                                    onChange={(e) => setDateTime(e.target.value)} 
+                                />
+                            </div>
 
-                            <label>
-                                <div>Location</div>
-                                <input className="input" value={location} onChange={(e) => setLocation(e.target.value)} />
-                            </label>
+                            <div className="field">
+                                <label className="field__label">Location</label>
+                                <input 
+                                    className="input" 
+                                    value={location} 
+                                    onChange={(e) => setLocation(e.target.value)}
+                                    placeholder="Event location (optional)" 
+                                />
+                            </div>
 
-                            <label>
-                                <div>Capacity</div>
-                                <input className="input" type="number" min={1} value={capacity} onChange={(e) => setCapacity(Number(e.target.value))} />
-                            </label>
+                            <div className="field">
+                                <label className="field__label">Capacity</label>
+                                <input 
+                                    className="input" 
+                                    type="number" 
+                                    min={1} 
+                                    value={capacity} 
+                                    onChange={(e) => setCapacity(Number(e.target.value))} 
+                                />
+                            </div>
 
-                            <div>
-                                <div style={{ marginBottom: 6 }}>Image (optional)</div>
-
+                            <div className="field">
+                                <label className="field__label">Image</label>
                                 <div
                                     className={`dropzone ${dragOver ? "dropzone--active" : ""}`}
                                     onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                                     onDragLeave={() => setDragOver(false)}
-                                    onDrop={async (e) => { e.preventDefault(); setDragOver(false); await handleDroppedFiles(e.dataTransfer.files); }}
+                                    onDrop={async (e) => {
+                                        e.preventDefault();
+                                        setDragOver(false);
+                                        await handleDroppedFiles(e.dataTransfer.files);
+                                    }}
                                     onClick={() => document.getElementById("modal-file-input")?.click()}
                                     role="button"
                                     tabIndex={0}
@@ -235,7 +265,7 @@ export default function EventModal({event, onClose, onSaved, onDeleted,}: {
                                         }
                                     }}
                                 >
-                                    {uploading ? "Uploading..." : "Drag image here or click"}
+                                    {uploading ? "Uploading..." : "Drop image here or click to upload"}
                                 </div>
 
                                 <input
@@ -248,28 +278,44 @@ export default function EventModal({event, onClose, onSaved, onDeleted,}: {
                                 />
 
                                 {previewAbs && !uploading && (
-                                    <div style={{ marginTop: 8 }}>
-                                        <img src={previewAbs} alt="Preview" style={{ maxWidth: "100%", borderRadius: 8 }} />
+                                    <div className="image-preview">
+                                        <img src={previewAbs} alt="Preview" />
                                     </div>
                                 )}
                             </div>
                         </div>
 
-                        <div style={{ marginTop: 16 }}>
-                            <BalanceOverview key={`balance-${refreshKey}`} eventId={event.id} />
+                        {error && (
+                            <div className="form-error">
+                                {error}
+                            </div>
+                        )}
+
+                        <div className="modal-section">
+                            <BalanceOverview 
+                                key={`balance-${refreshKey}`} 
+                                eventId={event.id} 
+                            />
                             <ExpenseList 
                                 key={`expenses-${refreshKey}`} 
                                 eventId={event.id} 
                                 onExpenseAdded={refreshExpenses}
-                                />
+                            />
                         </div>
 
-                        {error && <div style={{ color: "tomato" }}>{error}</div>}
-                        <div className="modal-actions" style={{ marginTop: 16 }}>
-                            <button className="btn btn-danger" onClick={onDelete} disabled={deleting}>
+                        <div className="form-actions">
+                            <button 
+                                className="btn btn-danger" 
+                                onClick={onDelete} 
+                                disabled={deleting}
+                            >
                                 {deleting ? "Deleting..." : "Delete"}
                             </button>
-                            <button className="btn btn-primary" onClick={onSave} disabled={saving}>
+                            <button 
+                                className="btn btn-primary" 
+                                onClick={onSave} 
+                                disabled={saving}
+                            >
                                 {saving ? "Saving..." : "Save changes"}
                             </button>
                         </div>
