@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import type { EventItem } from "./EventCard";
 import "./EventModal.css";
+import ExpenseList from "./ExpenseList";
+import BalanceOverview from "./BalanceOverview";
 
 const apiBase = import.meta.env.VITE_API_BASE ?? "http://localhost:8080";
 
@@ -35,6 +37,9 @@ export default function EventModal({event, onClose, onSaved, onDeleted,}: {
 
     const [dragOver, setDragOver] = useState(false);
     const [uploading, setUploading] = useState(false);
+
+    const [refreshKey, setRefreshKey] = useState(0);
+
 
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
@@ -153,6 +158,11 @@ export default function EventModal({event, onClose, onSaved, onDeleted,}: {
         }
     };
 
+    // Function to refresh expense-related components
+    const refreshExpenses = () => {
+    setRefreshKey(prev => prev + 1);
+    };
+
     return (
         <div className="modal-overlay" onClick={onClose} aria-hidden="true">
             <div
@@ -243,6 +253,15 @@ export default function EventModal({event, onClose, onSaved, onDeleted,}: {
                                     </div>
                                 )}
                             </div>
+                        </div>
+
+                        <div style={{ marginTop: 16 }}>
+                            <BalanceOverview key={`balance-${refreshKey}`} eventId={event.id} />
+                            <ExpenseList 
+                                key={`expenses-${refreshKey}`} 
+                                eventId={event.id} 
+                                onExpenseAdded={refreshExpenses}
+                                />
                         </div>
 
                         {error && <div style={{ color: "tomato" }}>{error}</div>}

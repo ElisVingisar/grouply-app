@@ -1,5 +1,3 @@
-:root { color-scheme: light dark; }
-
 *, *::before, *::after { box-sizing: border-box; }
 
 body {
@@ -77,6 +75,14 @@ body {
     --btn-fg-muted: #111111;
     --btn-danger-bg: #e5534b;
     --btn-danger-fg: #ffffff;
+
+    --card-bg: #ffffff;
+    --card-border-color: rgba(0,0,0,0.06);
+    --accent-color: var(--btn-bg);
+    --debt-color: #ef4444;   /* red (owes) */
+    --credit-color: #16a34a; /* green (is owed) */
+    --muted-fg: #666666;
+    --card-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -98,5 +104,96 @@ body {
         --btn-fg-muted: #e9eef3;
         --btn-danger-bg: #ef4444;
         --btn-danger-fg: #ffffff;
+
+        --card-bg: var(--panel-bg);
+        --card-border-color: rgba(255,255,255,0.04);
+        --card-shadow: 0 6px 18px rgba(0,0,0,0.4);
+        --muted-fg: #bfc7d0;
+        --accent-color: var(--btn-bg);
+        --debt-color: #f87171;
+        --credit-color: #34d399;
     }
+
+    /* Expense / Balance card styles */
+.expense-card,
+.balance-row,
+.settlement-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border-color);
+  border-radius: 10px;
+  box-shadow: var(--card-shadow);
+  padding: 12px;
+  color: var(--panel-fg);
+}
+
+/* expense specific */
+.expense-card .expense-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+.expense-card .expense-payer {
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.expense-card .expense-desc {
+  color: var(--muted-fg);
+  margin-top: 4px;
+}
+.expense-card .expense-amount {
+  font-weight: 600;
+  color: var(--accent-color);
+}
+
+/* share lines */
+.expense-card .share-list {
+  margin-top: 10px;
+  display: grid;
+  gap: 6px;
+}
+.expense-card .share-row {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted-fg);
+}
+
+/* balances */
+.balance-overview { display: grid; gap: 10px; }
+.balance-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.balance-row .name { font-weight: 500; }
+.balance-row .amount { font-weight: 600; }
+
+/* amount state classes */
+.amount--debt { color: var(--debt-color); }     /* user owes money (positive) */
+.amount--credit { color: var(--credit-color); } /* user is owed money (negative) */
+.amount--zero { color: var(--muted-fg); }
+
+/* settlements */
+.settlement-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+/* small button variant */
+.btn-sm {
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+/* make modal children adopt panel background for consistency (useful when modal contains cards) */
+.modal-panel .expense-card,
+.modal-panel .balance-row,
+.modal-panel .settlement-card {
+  background: var(--panel-bg);
+  color: var(--panel-fg);
+}
+    
 }
