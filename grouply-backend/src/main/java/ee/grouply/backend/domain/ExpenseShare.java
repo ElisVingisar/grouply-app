@@ -22,7 +22,7 @@ public class ExpenseShare {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
 
-    // auxiliary: store ratio/percentage value as sent by client (nullable)
+    // store ratio/percentage value as sent by client
     private Double shareValue;
 
     public ExpenseShare() {}

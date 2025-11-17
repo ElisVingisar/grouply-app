@@ -7,21 +7,15 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public class ExpenseCreateDTO {
-    @NotNull
     public Long eventId;
-
-    @NotNull
     public Long payerId;
-
-    @NotNull
-    @DecimalMin("0.01")
     public BigDecimal amount;
-
     public String description;
-
-    @NotNull
     public SplitMode splitMode;
+    public List<ShareInput> shares;
 
-    @NotEmpty
-    public List<ShareDTO> shares;
+    public static class ShareInput {
+        public Long userId;
+        public Double value;  // percentage, ratio, or exact amount depending on mode
+    }
 }

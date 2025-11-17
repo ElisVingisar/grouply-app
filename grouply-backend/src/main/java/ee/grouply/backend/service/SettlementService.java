@@ -49,25 +49,24 @@ public class SettlementService {
     // filter near-zero balances
     map.entrySet().removeIf(e -> e.getValue().abs().compareTo(BigDecimal.valueOf(0.01)) < 0);
 
-    // Changed comparison logic: negative balance means they are owed money (creditor)
+    // negative balance means they are owed money 
     PriorityQueue<Map.Entry<Long, BigDecimal>> creditors = new PriorityQueue<>(
-            Comparator.comparing((Map.Entry<Long, BigDecimal> e) -> e.getValue())  // Removed .reversed()
+            Comparator.comparing((Map.Entry<Long, BigDecimal> e) -> e.getValue())
     );
     PriorityQueue<Map.Entry<Long, BigDecimal>> debtors = new PriorityQueue<>(
-            Comparator.comparing((Map.Entry<Long, BigDecimal> e) -> e.getValue()).reversed()  // Added .reversed()
+            Comparator.comparing((Map.Entry<Long, BigDecimal> e) -> e.getValue()).reversed()
     );
 
-    // Changed condition: negative balance means they are owed money
     for (var e : map.entrySet()) {
-        if (e.getValue().compareTo(BigDecimal.ZERO) < 0) creditors.add(e);  // Changed > to <
-        else if (e.getValue().compareTo(BigDecimal.ZERO) > 0) debtors.add(e);  // Changed < to >
+        if (e.getValue().compareTo(BigDecimal.ZERO) < 0) creditors.add(e);
+        else if (e.getValue().compareTo(BigDecimal.ZERO) > 0) debtors.add(e);
     }
 
     List<Transfer> out = new ArrayList<>();
     while (!creditors.isEmpty() && !debtors.isEmpty()) {
         var c = creditors.poll();
         var d = debtors.poll();
-        BigDecimal credit = c.getValue().abs();  // Added .abs()
+        BigDecimal credit = c.getValue().abs();
         BigDecimal debt = d.getValue();
         BigDecimal transfer = credit.min(debt).setScale(2, RoundingMode.HALF_UP);
         
@@ -78,7 +77,7 @@ public class SettlementService {
         BigDecimal newDebt = debt.subtract(transfer);
         
         if (newCredit.compareTo(BigDecimal.valueOf(0.01)) >= 0) {
-            c.setValue(newCredit.negate());  // Added .negate()
+            c.setValue(newCredit.negate());
             creditors.add(c);
         }
         if (newDebt.compareTo(BigDecimal.valueOf(0.01)) >= 0) {

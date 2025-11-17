@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { listBalances, suggestedSettlements, postPayment, listUsers } from "../api/expenses";
+import { listBalances, suggestedSettlements, postPayment, listUsers, listPayments } from "../api/expenses";
 
 export default function BalanceOverview({ eventId }: { eventId: number }) {
   const [balances, setBalances] = useState<any[]>([]);
@@ -7,29 +7,37 @@ export default function BalanceOverview({ eventId }: { eventId: number }) {
   const [settlements, setSettlements] = useState<any[]>([]);
   const [showSettlements, setShowSettlements] = useState(false);
   const [users, setUsers] = useState<{ [key: number]: string }>({});
+  const [payments, setPayments] = useState<any[]>([]);
 
-  const load = () => {
+  const load = async () => {
     setLoading(true);
-    listBalances(eventId)
-      .then((d) => setBalances(Array.isArray(d) ? d : []))
-      .catch((e) => {
-        console.error("Failed to load balances:", e);
-        setBalances([]);
-      })
-      .finally(() => setLoading(false));
+    try {
+      const [balanceData, paymentData] = await Promise.all([
+        listBalances(eventId),
+        listPayments(eventId)
+      ]);
+      setBalances(Array.isArray(balanceData) ? balanceData : []);
+      setPayments(Array.isArray(paymentData) ? paymentData : []);
+    } catch (e) {
+      console.error("Failed to load data:", e);
+      setBalances([]);
+      setPayments([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, [eventId]);
 
   useEffect(() => {
-    listUsers()
+    listUsers(eventId)
       .then((u) => {
         const map: any = {};
         (u || []).forEach((x: any) => (map[x.id] = x.name));
         setUsers(map);
       })
       .catch((e) => console.error("Failed to load users:", e));
-  }, []);
+  }, [eventId]);
 
   const loadSuggested = () => {
     suggestedSettlements(eventId)
@@ -49,7 +57,7 @@ export default function BalanceOverview({ eventId }: { eventId: number }) {
         toUserId: t.toUserId,
         amount: String(t.amount),
       });
-      await listBalances(eventId).then(setBalances);
+      await load();
       setSettlements((s) =>
         s.filter(
           (x: any) =>
@@ -61,6 +69,7 @@ export default function BalanceOverview({ eventId }: { eventId: number }) {
         )
       );
     } catch (e) {
+      console.error("Failed to settle:", e);
       alert("Failed to mark payment as settled");
     }
   };
@@ -96,7 +105,7 @@ export default function BalanceOverview({ eventId }: { eventId: number }) {
           </div>
 
           {showSettlements && (
-            <div style={{ marginTop: 12 }}>
+            <div style={{ marginTop: 28 }}>
               <h4 style={{ margin: "8px 0" }}>Suggested transfers</h4>
               {settlements.length === 0 && <p style={{ color: "var(--muted-fg)" }}>No transfers needed</p>}
               <div style={{ display: "grid", gap: 8 }}>
@@ -115,6 +124,38 @@ export default function BalanceOverview({ eventId }: { eventId: number }) {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {payments && payments.length > 0 && (
+            <div style={{ 
+              marginTop: 20, 
+              paddingTop: 12, 
+              borderTop: "1px solid var(--card-border-color)" 
+            }}>
+              <h4 style={{ 
+                margin: "0 0 8px 0", 
+                fontSize: 14, 
+                color: "var(--muted-fg)" 
+              }}>
+                Payment History
+              </h4>
+              <div style={{ fontSize: 13, color: "var(--muted-fg)" }}>
+                {[...payments]
+                  .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                  .map((p: any) => (
+                    <div key={p.id} style={{ marginBottom: 4 }}>
+                      <strong style={{ color: "var(--text-color)" }}>
+                        {p.fromUserName}
+                      </strong> paid{" "}
+                      <strong style={{ color: "var(--text-color)" }}>
+                        {p.toUserName}
+                      </strong>{" "}
+                      {parseFloat(p.amount).toFixed(2)} € on{" "}
+                      {new Date(p.createdAt).toLocaleDateString()}
+                    </div>
+                  ))}
               </div>
             </div>
           )}

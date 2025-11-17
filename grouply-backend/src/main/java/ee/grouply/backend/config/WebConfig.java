@@ -6,21 +6,19 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Value("${grouply.upload-dir}")
+    @Value("${grouply.upload-dir:uploads}")
     private String uploadDir;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        Path projectRoot = Paths.get("").toAbsolutePath();
-        Path uploadPath = projectRoot.resolve(uploadDir).normalize();
-
+        Path uploadPath = Path.of(uploadDir).toAbsolutePath().normalize();
+        String uploadLocation = uploadPath.toUri().toString();
         registry.addResourceHandler("/files/**")
-                .addResourceLocations("file:" + uploadPath.toString() + "/");
+                .addResourceLocations(uploadLocation);
     }
 }
 

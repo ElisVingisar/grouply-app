@@ -1,56 +1,135 @@
 import { useEffect, useState } from "react";
-import EventCard, { type EventItem } from "../components/EventCard";
-import EventModal from "../components/EventModal.tsx";
+import { useNavigate } from "react-router-dom";
+import { listEvents } from "../api/expenses";
+import EventModal from "../components/EventModal";
+import "./EventsPage.css";
 
-const apiBase = import.meta.env.VITE_API_BASE ?? "http://localhost:8080";
+type EventDTO = {
+  id: number;
+  title: string;
+  description?: string;
+  dateTime?: string;
+  location?: string;
+  capacity?: number;
+  imageUrl?: string | null;
+};
+
+const apiBase = (import.meta.env.VITE_API_BASE || "http://localhost:8080").replace(/\/+$/,"");
 
 export default function EventsPage() {
-    const [events, setEvents] = useState<EventItem[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [selected, setSelected] = useState<EventItem | null>(null);
+  const [events, setEvents] = useState<EventDTO[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<EventDTO | null>(null);
+  const navigate = useNavigate();
 
-    const load = () => {
-        setLoading(true);
-        fetch(`${apiBase}/api/events`)
-            .then((r) => r.json())
-            .then((data) => setEvents(data))
-            .catch((e) => console.error("Fetch error:", e))
-            .finally(() => setLoading(false));
-    };
+  const loadEvents = async () => {
+    try {
+      setLoading(true);
+      const data = await listEvents();
+      setEvents(data);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    useEffect(() => {
-        load();
-    }, []);
+  useEffect(() => {
+    loadEvents();
+  }, []);
 
-    const onCardClick = (e: EventItem) => setSelected(e);
+  const handleEventClick = (event: EventDTO) => {
+    setSelectedEvent(event);
+  };
 
-    const handleSaved = (updated: EventItem) => {
-        // optimistlik uuendus: vaheta listis välja
-        setEvents((old) => old.map((x) => (x.id === updated.id ? updated : x)));
-    };
+  const handleEventSaved = (updated: any) => {
+    setEvents(prev => prev.map(e => e.id === updated.id ? { ...e, ...updated } : e));
+    setSelectedEvent(null);
+  };
 
-    const handleDeleted = (id: number) => {
-        setEvents((old) => old.filter((x) => x.id !== id));
-    };
+  const handleEventDeleted = (id: number) => {
+    setEvents(prev => prev.filter(e => e.id !== id));
+    setSelectedEvent(null);
+  };
 
-    return (
-        <div style={{ padding: "1rem" }}>
-            {loading && <p>Loading events...</p>}
+  if (loading) return <div className="page-loading">Loading events...</div>;
+  if (error) return <div className="page-error">Error: {error}</div>;
 
-            <div className="cards-grid">
-                {events.map((e) => (
-                    <EventCard key={e.id} event={e} onClick={() => onCardClick(e)} />
-                ))}
-            </div>
-
-            {selected && (
-                <EventModal
-                    event={selected}
-                    onClose={() => setSelected(null)}
-                    onSaved={handleSaved}
-                    onDeleted={handleDeleted}
-                />
-            )}
+  return (
+    <>
+      <div className="events-page">
+        <div className="events-header">
+          <h1>My Events</h1>
+          <button 
+            className="btn btn-accent" 
+            onClick={() => navigate("/events/new")}
+          >
+            + Add Event
+          </button>
         </div>
-    );
+
+        {events.length === 0 ? (
+          <div className="empty-state">
+            <p>No events yet. Create your first event!</p>
+            <button 
+              className="btn btn-accent" 
+              onClick={() => navigate("/events/new")}
+            >
+              Create Event
+            </button>
+          </div>
+        ) : (
+          <div className="events-grid">
+            {events.map(event => (
+              <div 
+                key={event.id} 
+                className="event-card"
+                onClick={() => handleEventClick(event)}
+              >
+                {event.imageUrl && (
+                  <div
+                    className="event-card__image"
+                    style={{ backgroundImage: `url(${event.imageUrl.startsWith("http") ? event.imageUrl : apiBase + event.imageUrl})` }}
+                  />
+                )}
+                <div className="event-card__content">
+                  <h3 className="event-card__title">{event.title}</h3>
+                  {event.description && (
+                    <p className="event-card__description">{event.description}</p>
+                  )}
+                  <div className="event-card__meta">
+                    {event.dateTime && (
+                      <div className="event-card__date">
+                        📅 {new Date(event.dateTime).toLocaleDateString()} at{" "}
+                        {new Date(event.dateTime).toLocaleTimeString([], { 
+                          hour: "2-digit", 
+                          minute: "2-digit" 
+                        })}
+                      </div>
+                    )}
+                    {event.location && (
+                      <div className="event-card__location">📍 {event.location}</div>
+                    )}
+                    {event.capacity && (
+                      <div className="event-card__capacity">👥 Max {event.capacity} people</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {selectedEvent && (
+        <EventModal
+          event={selectedEvent as any}
+          onClose={() => setSelectedEvent(null)}
+          onSaved={handleEventSaved}
+          onDeleted={handleEventDeleted}
+        />
+      )}
+    </>
+  );
 }

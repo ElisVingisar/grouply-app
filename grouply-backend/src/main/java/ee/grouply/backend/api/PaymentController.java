@@ -9,11 +9,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*")
 @RestController
-@RequestMapping("/api/payments")
+@RequestMapping("/api")
 public class PaymentController {
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
@@ -30,7 +32,7 @@ public class PaymentController {
         this.userRepository = userRepository;
     }
 
-    @PostMapping
+    @PostMapping("/payments")
     public Map<String, Object> createPayment(@RequestBody PaymentDTO dto) {
         User from = userRepository.findById(dto.fromUserId).orElseThrow(() -> new IllegalArgumentException("from user not found"));
         User to = userRepository.findById(dto.toUserId).orElseThrow(() -> new IllegalArgumentException("to user not found"));
@@ -42,5 +44,25 @@ public class PaymentController {
         p.setSettled(true);
         var saved = paymentRepository.save(p);
         return Map.of("id", saved.getId());
+    }
+
+    /**
+     * Get payment history for an event
+     * GET /api/events/{eventId}/payments
+     */
+    @GetMapping("/events/{eventId}/payments")
+    public List<Map<String, Object>> getPayments(@PathVariable Long eventId) {
+        return paymentRepository.findByEventId(eventId).stream()
+                .map(p -> Map.<String, Object>of(
+                        "id", p.getId(),
+                        "fromUserId", p.getFromUser().getId(),
+                        "fromUserName", p.getFromUser().getName(),
+                        "toUserId", p.getToUser().getId(),
+                        "toUserName", p.getToUser().getName(),
+                        "amount", p.getAmount(),
+                        "createdAt", p.getCreatedAt(),
+                        "settled", p.isSettled()
+                ))
+                .collect(Collectors.toList());
     }
 }

@@ -1,312 +1,554 @@
-*, *::before, *::after { box-sizing: border-box; }
-
-body {
-    margin: 0;
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-}
-
-.cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
-}
-
-.card {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(0,0,0,0.08);
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-    transition: transform 100ms ease, box-shadow 120ms ease;
-}
-.card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 24px rgba(0,0,0,0.12);
-}
-
-.card-image img {
-    width: 100%;
-    height: 164px;
-    object-fit: cover;
-    display: block;
-}
-
-.card-body {
-    padding: 12px 14px 14px;
-}
-
-.card-title {
-    margin: 0 0 6px;
-    font-size: 1.05rem;
-    line-height: 1.2;
-}
-
-.card-meta {
-    margin: 0 0 8px;
-    font-size: 0.9rem;
-    opacity: 0.85;
-}
-
-.card-desc {
-    margin: 0;
-    font-size: 0.95rem;
-    opacity: 0.9;
-}
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
-    color-scheme: light dark;
+  /* Warm Scandinavian Palette - Browns & Beiges */
+  
+  /* Primary - Rich Brown (Coffee/Walnut) */
+  --color-primary: #5D4E37;
+  --color-primary-light: #6F5D45;
+  --color-primary-dark: #4A3D2A;
+  --color-primary-subtle: #F5F1ED;
+  
+  /* Accent - Warm Terracotta/Clay */
+  --color-accent: #C17854;
+  --color-accent-light: #D4916D;
+  --color-accent-dark: #A65E3F;
+  --color-accent-subtle: #FAF4F0;
+  
+  /* Secondary - Sage Green (natural complement) */
+  --color-secondary: #8B9A7A;
+  --color-secondary-light: #A3B592;
+  --color-secondary-dark: #6F7E60;
+  
+  /* Neutrals - Warm beiges and creams */
+  --color-background: #F9F6F1;
+  --color-surface: #FFFCF7;
+  --color-surface-hover: #F5F0E8;
+  --color-surface-alt: #EDE7DD;
+  
+  /* Text - Warm browns */
+  --color-text: #3E3226;
+  --color-text-secondary: #6B5D4F;
+  --color-text-muted: #9B8B7A;
+  
+  /* Borders - Subtle warm tones */
+  --color-border: #E4DED3;
+  --color-border-light: #EFE9DD;
+  
+  /* Semantic Colors - Nature-inspired */
+  --color-success: #7A9668;
+  --color-danger: #B85C4F;
+  --color-warning: #D49A5A;
+  --color-info: #7A8B9A;
+  
+  /* Functional Colors */
+  --color-debt: #B85C4F;
+  --color-credit: #7A9668;
+  
+  /* Shadows - Warmer, softer */
+  --shadow-sm: 0 1px 3px rgba(62, 50, 38, 0.08);
+  --shadow-md: 0 4px 16px rgba(62, 50, 38, 0.12);
+  --shadow-lg: 0 12px 32px rgba(62, 50, 38, 0.15);
+  --shadow-xl: 0 20px 48px rgba(62, 50, 38, 0.18);
+  
+  /* Typography */
+  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Outfit', sans-serif;
+  
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+  
+  /* Border radius */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+  
+  /* Transitions */
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
-    /* panel / overlay */
-    --overlay: rgba(0,0,0,0.35);
-    --panel-bg: #ffffff;
-    --panel-fg: #0f1115;
-    --panel-border: rgba(0,0,0,0.12);
-    --shadow-elev: 0 10px 30px rgba(0,0,0,0.25);
-
-    /* controls */
-    --field-bg: #ffffff;
-    --field-fg: #0f1115;
-    --field-border: rgba(0,0,0,0.15);
-    --field-border-focus: #6aa7ff;
-
-    --btn-bg: #1f6feb;
-    --btn-fg: #ffffff;
-    --btn-bg-muted: #eeeeee;
-    --btn-fg-muted: #111111;
-    --btn-danger-bg: #e5534b;
-    --btn-danger-fg: #ffffff;
-
-    --card-bg: #ffffff;
-    --card-border-color: rgba(0,0,0,0.06);
-    --accent-color: var(--btn-bg);
-    --debt-color: #ef4444;   /* red (owes) */
-    --credit-color: #16a34a; /* green (is owed) */
-    --muted-fg: #666666;
-    --card-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  /* Legacy variables - ONLY for backwards compatibility with old components */
+  --overlay: rgba(93, 78, 55, 0.6);
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --overlay: rgba(0,0,0,0.5);
-        --panel-bg: #111417;
-        --panel-fg: #e9eef3;
-        --panel-border: rgba(255,255,255,0.12);
-        --shadow-elev: 0 10px 30px rgba(0,0,0,0.35);
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-        --field-bg: #161a1e;
-        --field-fg: #e9eef3;
-        --field-border: rgba(255,255,255,0.16);
-        --field-border-focus: #8ab4ff;
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
-        --btn-bg: #4a5568;           /* Subtle slate gray */
-        --btn-fg: #e2e8f0;           /* Light gray for text */
-        --btn-bg-muted: #2d3748;     /* Darker slate for hover */
-        --btn-fg-muted: #e2e8f0;     /* Consistent light text */
-        --btn-danger-bg: #dc3545;    /* Softer red */
-        --btn-danger-fg: #ffffff;     /* White text */
+body {
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background: var(--color-background);
+  line-height: 1.6;
+}
 
-        --card-bg: var(--panel-bg);
-        --card-border-color: rgba(255,255,255,0.04);
-        --card-shadow: 0 6px 18px rgba(0,0,0,0.4);
-        --muted-fg: #bfc7d0;
-        --accent-color: var(--btn-bg);
-        --debt-color: #f87171;
-        --credit-color: #34d399;
-    }
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-text);
+}
 
-    /* Expense / Balance card styles */
+h1 { font-size: 3rem; letter-spacing: -0.02em; }
+h2 { font-size: 2.25rem; letter-spacing: -0.01em; }
+h3 { font-size: 1.75rem; }
+h4 { font-size: 1.375rem; }
+h5 { font-size: 1.125rem; }
+h6 { font-size: 1rem; }
+
+p { margin-bottom: var(--space-md); }
+
+/* Container */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-lg);
+}
+
+/* ============================================
+   BUTTONS - Single Source of Truth
+   ============================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: 0.5rem 1rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Primary - Rich Brown */
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+/* Secondary - Outlined */
+.btn-secondary {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1.5px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* Danger - Terracotta Red */
+.btn-danger {
+  background: var(--color-danger);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #A04D41;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+/* Accent - Warm Clay */
+.btn-accent {
+  background: var(--color-accent);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-accent:hover:not(:disabled) {
+  background: var(--color-accent-dark);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+/* Muted - Warm beige */
+.btn-muted {
+  background: var(--color-surface-alt);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.btn-muted:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* Button sizes */
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.btn-lg {
+  padding: 0.625rem 1.25rem;
+  font-size: 0.9375rem;
+}
+
+/* ============================================
+   FORM INPUTS
+   ============================================ */
+.input, .textarea, select {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: var(--transition);
+  box-sizing: border-box;
+}
+
+.input:focus, .textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+}
+
+.textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+label {
+  display: block;
+  margin-bottom: var(--space-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.field {
+  display: grid;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.field__label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+/* ============================================
+   BADGES - Split Mode Only
+   ============================================ */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.badge-equal {
+  background: rgba(139, 154, 122, 0.25);
+  color: #4A5E3F;
+  border: 1px solid rgba(139, 154, 122, 0.4);
+}
+
+.badge-percentage {
+  background: rgba(193, 120, 84, 0.25);
+  color: #8A4E2F;
+  border: 1px solid rgba(193, 120, 84, 0.4);
+}
+
+.badge-exact {
+  background: rgba(122, 139, 154, 0.25);
+  color: #3A4B5A;
+  border: 1px solid rgba(122, 139, 154, 0.4);
+}
+
+/* ============================================
+   CARDS
+   ============================================ */
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-light);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  transition: var(--transition);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+  border-color: var(--color-border);
+}
+
+.card-flat {
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border-light);
+}
+
+/* ============================================
+   EXPENSE & BALANCE CARDS
+   ============================================ */
 .expense-card,
 .balance-row,
 .settlement-card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border-color);
-  border-radius: 10px;
-  box-shadow: var(--card-shadow);
-  padding: 12px;
-  color: var(--panel-fg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-md);
+  transition: var(--transition);
 }
 
-/* expense specific */
-.expense-card .expense-header {
+.expense-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border);
+  background: var(--color-surface-hover);
+}
+
+.expense-header {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-md);
   align-items: flex-start;
 }
-.expense-card .expense-payer {
+
+.expense-payer {
   font-weight: 600;
   font-size: 1.05rem;
-}
-.expense-card .expense-desc {
-  color: var(--muted-fg);
-  margin-top: 4px;
-}
-.expense-card .expense-amount {
-  font-weight: 600;
-  color: var(--accent-color);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm); /* Add gap between name and badge */
 }
 
-/* share lines */
-.expense-card .share-list {
-  margin-top: 10px;
-  display: grid;
-  gap: 6px;
+.expense-desc {
+  color: var(--color-text-muted);
+  margin-top: var(--space-xs);
+  font-size: 0.9rem;
 }
-.expense-card .share-row {
+
+.expense-split-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+}
+
+.expense-amount {
+  font-weight: 600;
+  color: var(--color-primary);
+  font-size: 1.125rem;
+}
+
+.share-list {
+  margin-top: var(--space-md);
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.share-row {
   display: flex;
   justify-content: space-between;
-  color: var(--muted-fg);
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
 }
 
-/* balances */
-.balance-overview { display: grid; gap: 10px; }
+.expense-divider {
+  height: 1px;
+  background: var(--color-border-light);
+  margin: var(--space-md) 0 var(--space-sm) 0;
+}
+
 .balance-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-.balance-row .name { font-weight: 500; }
-.balance-row .amount { font-weight: 600; }
 
-/* amount state classes */
-.amount--debt { color: var(--debt-color); }     /* user owes money (positive) */
-.amount--credit { color: var(--credit-color); } /* user is owed money (negative) */
-.amount--zero { color: var(--muted-fg); }
+.balance-row .name {
+  font-weight: 500;
+  color: var(--color-text);
+}
 
-/* settlements */
+.balance-row .amount {
+  font-weight: 600;
+  font-size: 1.125rem;
+}
+
+.amount--debt { color: var(--color-debt); }
+.amount--credit { color: var(--color-credit); }
+.amount--zero { color: var(--color-text-muted); }
+
 .settlement-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-md);
 }
 
-/* small button variant */
-.btn-sm {
-  padding: 6px 10px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-}
-
-/* make modal children adopt panel background for consistency (useful when modal contains cards) */
-.modal-panel .expense-card,
-.modal-panel .balance-row,
-.modal-panel .settlement-card {
-  background: var(--panel-bg);
-  color: var(--panel-fg);
-}
-
-
-/* Form styles */
-.form-section {
-  margin-bottom: 28px;
-}
-
-.form-grid {
-  display: grid;
-  gap: 20px;
-}
-
-.field {
-  display: grid;
-  gap: 8px;
-}
-
-.field__label {
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: var(--panel-fg);
-}
-
-.input,
-.textarea {
-  width: 100%;
-  background: var(--card-bg);
-  color: var(--panel-fg);
-  border: 1px solid var(--card-border-color);
-  border-radius: 10px;
-  padding: 12px 14px;
-  font-size: 0.95rem;
-  transition: all 150ms ease;
-  box-shadow: var(--card-shadow);
-}
-
-.input:focus,
-.textarea:focus {
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 15%, transparent);
-  outline: none;
-}
-
-/* Updated button styles - more subtle */
-.btn {
-  appearance: none;
-  border: 1px solid var(--card-border-color);
-  border-radius: 10px;
-  padding: 10px 16px;
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  background: var(--card-bg);
-  color: var(--panel-fg);
-  transition: all 150ms ease;
-}
-
-.btn:hover:not(:disabled) {
-  background: var(--btn-bg-muted);
-  transform: translateY(-1px);
-}
-
-.btn-primary {
-  background: var(--panel-bg);
-  border: 1px solid var(--accent-color);
-  color: var(--accent-color);
-}
-
-.btn-danger {
-  background: var(--panel-bg);
-  border: 1px solid var(--btn-danger-bg);
-  color: var(--btn-danger-bg);
-}
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Updated dropzone */
-.dropzone {
-  border: 2px dashed var(--card-border-color);
-  border-radius: 10px;
-  padding: 20px;
-  text-align: center;
-  color: var(--muted-fg);
-  background: var(--card-bg);
-  transition: all 150ms ease;
-  cursor: pointer;
-}
-
-.dropzone:hover,
-.dropzone--active {
-  border-color: var(--accent-color);
-  color: var(--accent-color);
-}
-
-/* Form layout containers */
-.form-card {
-  background: var(--panel-bg);
-  border: 1px solid var(--card-border-color);
-  border-radius: 14px;
-  padding: 24px;
-}
-
-.form-actions {
+/* ============================================
+   MODAL
+   ============================================ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  backdrop-filter: blur(8px);
   display: flex;
-  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+  overflow-y: auto;
+}
+
+.modal-content {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2xl);
+  max-width: 640px;
+  width: 100%;
+  margin: auto;
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--color-border);
+  animation: slideUp 0.3s ease-out;
+}
+
+.modal-content h2 {
+  margin-bottom: var(--space-xl);
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--color-border-light);
+  color: var(--color-text);
+  font-size: 1.5rem;
+}
+
+.modal-body {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.modal-actions {
+  display: flex;
+  gap: var(--space-md);
   justify-content: flex-end;
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid var(--card-border-color);
+  margin-top: var(--space-2xl);
+  padding-top: var(--space-xl);
+  border-top: 1px solid var(--color-border-light);
 }
-    
+
+.modal-content .field {
+  margin-bottom: var(--space-xs);
 }
+
+.modal-content label {
+  margin-bottom: var(--space-sm);
+  display: block;
+}
+
+.modal-content .input,
+.modal-content .textarea,
+.modal-content select {
+  margin-bottom: 0;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   UTILITIES
+   ============================================ */
+.text-muted { color: var(--color-text-muted); }
+.text-secondary { color: var(--color-text-secondary); }
+.text-primary { color: var(--color-primary); }
+.text-accent { color: var(--color-accent); }
+.font-display { font-family: var(--font-display); }
+
+.divider {
+  height: 1px;
+  background: var(--color-border-light);
+  margin: var(--space-xl) 0;
+}
+
+/* ============================================
+   MOBILE RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 var(--space-md);
+  }
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.75rem; }
+  
+  .modal-overlay {
+    padding: var(--space-md);
+  }
+  
+  .modal-content {
+    padding: var(--space-xl);
+    border-radius: var(--radius-md);
+  }
+  
+  .modal-content h2 {
+    font-size: 1.25rem;
+  }
+}
+

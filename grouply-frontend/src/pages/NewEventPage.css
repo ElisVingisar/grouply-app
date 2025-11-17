@@ -10,11 +10,11 @@
 }
 
 .form-card {
-    background: var(--panel-bg);
-    color: var(--panel-fg);
-    border: 1px solid var(--panel-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
-    box-shadow: var(--shadow-elev);
+    box-shadow: var(--shadow-xl);
     padding: 16px;
     min-width: 0;
 }
@@ -38,8 +38,9 @@
     margin-top: 8px;
     border-radius: 8px;
     overflow: hidden;
-    border: 1px solid var(--panel-border);
+    border: 1px solid var(--color-border);
 }
+
 .image-preview img {
     display: block;
     width: 100%;
@@ -47,7 +48,7 @@
 }
 
 .form-error {
-    color: tomato;
+    color: var(--color-danger);
     margin-top: 8px;
 }
 
@@ -56,4 +57,23 @@
     gap: 8px;
     justify-content: flex-end;
     margin-top: 12px;
+}
+
+.new-event-page {
+  padding: 24px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.new-event-container h1 {
+  margin-bottom: 24px;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.event-form {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: 12px;
+  padding: 24px;
 }

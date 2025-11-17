@@ -25,3 +25,12 @@ spring:
 
 grouply:
   upload-dir: ${UPLOAD_DIR:uploads}
+
+jwt:
+  secret: ${JWT_SECRET:dev-secret-key-change-me-to-secure-one}
+  expiration-ms: ${JWT_EXPIRATION_MS:604800000} # 7 days
+
+logging:
+  level:
+    ee.grouply.backend.security.JwtFilter: DEBUG
+    org.springframework.security: WARN

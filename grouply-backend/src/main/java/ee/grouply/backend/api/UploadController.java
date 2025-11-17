@@ -1,44 +1,49 @@
 package ee.grouply.backend.api;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.*;
-import java.util.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Map;
 
-@CrossOrigin(origins = "*")
 @RestController
-@RequestMapping("/api/uploads")
+@RequestMapping("/api")
 public class UploadController {
 
-    @Value("${grouply.upload-dir}")
-    private String uploadDir;
+    private final Path uploadRoot = Path.of("uploads").toAbsolutePath().normalize();
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Map<String, String> upload(@RequestParam("file") MultipartFile file) throws IOException {
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> upload(@RequestPart("file") MultipartFile file,
+                                    @AuthenticationPrincipal UserDetails user) throws IOException {
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
         if (file.isEmpty()) {
-            throw new IllegalArgumentException("Empty file");
+            return ResponseEntity.badRequest().body(Map.of("error", "Empty file"));
         }
 
-        Path projectRoot = Paths.get("").toAbsolutePath();
-        Path dir = projectRoot.resolve(uploadDir).normalize();
-        Files.createDirectories(dir);
+        Files.createDirectories(uploadRoot);
 
-        String original = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
+        String original = StringUtils.cleanPath(file.getOriginalFilename() == null ? "file" : file.getOriginalFilename());
         String ext = "";
         int dot = original.lastIndexOf('.');
-        if (dot != -1) ext = original.substring(dot);
+        if (dot >= 0) ext = original.substring(dot);
+        String filename = System.currentTimeMillis() + "-" + Math.abs(original.hashCode()) + ext;
 
-        String filename = UUID.randomUUID() + (ext.isBlank() ? "" : ext.toLowerCase());
-        Path target = dir.resolve(filename);
+        Path target = uploadRoot.resolve(filename);
+        try (var in = file.getInputStream()) {
+            Files.copy(in, target);
+        }
 
-        Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
-
-        String publicUrl = "/files/" + filename;
-        return Map.of("url", publicUrl);
+        // WebConfig serves /files/** from uploads/
+        String publicPath = "/files/" + filename;
+        return ResponseEntity.ok(Map.of("url", publicPath));
     }
 }

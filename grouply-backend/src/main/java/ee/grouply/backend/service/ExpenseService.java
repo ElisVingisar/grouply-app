@@ -1,8 +1,10 @@
 package ee.grouply.backend.service;
 
 import ee.grouply.backend.domain.*;
+import ee.grouply.backend.domain.SplitMode;
 import ee.grouply.backend.dto.*;
 import ee.grouply.backend.repo.*;
+import ee.grouply.backend.error.NotFoundException;
 
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -84,9 +86,9 @@ public class ExpenseService {
                 shares.add(share);
                 totalAssigned = totalAssigned.add(amt);
             }
-        } else if (dto.splitMode == SplitMode.RATIO) {
+        } else if (dto.splitMode == SplitMode.EXACT) {  // changed from RATIO
             double totalRatio = dto.shares.stream().mapToDouble(s -> s.value == null ? 0.0 : s.value).sum();
-            if (totalRatio <= 0) throw new IllegalArgumentException("Invalid ratio totals");
+            if (totalRatio <= 0) throw new IllegalArgumentException("Invalid exact amounts");
             BigDecimal totalAssigned = BigDecimal.ZERO;
             for (int i = 0; i < dto.shares.size(); i++) {
                 var s = dto.shares.get(i);
@@ -110,7 +112,7 @@ public class ExpenseService {
 
         e.setShares(shares);
         var saved = expenseRepository.save(e);
-        // shares cascade persisted; but ensure shareRepository aware
+
         return saved;
     }
 
@@ -154,4 +156,105 @@ public class ExpenseService {
     
     return balances;
 }
+
+    /**
+     * Update an existing expense
+     */
+    @Transactional
+    public Expense updateExpense(Long expenseId, ExpenseCreateDTO dto) {
+        Expense expense = expenseRepository.findById(expenseId)
+                .orElseThrow(() -> new NotFoundException("Expense not found"));
+
+        User payer = userRepository.findById(dto.payerId)
+                .orElseThrow(() -> new NotFoundException("Payer not found"));
+
+        // Update basic fields
+        expense.setDescription(dto.description);
+        expense.setAmount(dto.amount.setScale(2, RoundingMode.HALF_UP));  // scale to 2 decimals
+        expense.setSplitMode(dto.splitMode);  // dto.splitMode is already SplitMode enum
+        expense.setPayer(payer);
+
+        // Remove old shares
+        expense.getShares().clear();
+
+        // Add new shares (values will be recalculated by calculateShares)
+        for (ExpenseCreateDTO.ShareInput s : dto.shares) {
+            User u = userRepository.findById(s.userId)
+                    .orElseThrow(() -> new NotFoundException("User not found"));
+            ExpenseShare share = new ExpenseShare();
+            share.setExpense(expense);
+            share.setUser(u);
+            share.setShareValue(s.value);
+            share.setAmount(BigDecimal.ZERO); // Will be calculated below
+            expense.getShares().add(share);
+        }
+
+        // Recalculate share amounts
+        calculateShares(expense);
+
+        return expenseRepository.save(expense);
+    }
+
+    /**
+     * Delete an expense
+     */
+    @Transactional
+    public void deleteExpense(Long expenseId) {
+        if (!expenseRepository.existsById(expenseId)) {
+            throw new NotFoundException("Expense not found");
+        }
+        expenseRepository.deleteById(expenseId);
+    }
+
+    private void calculateShares(Expense e) {
+        // compute share amounts
+        List<ExpenseShare> shares = new ArrayList<>();
+        if (e.getSplitMode() == SplitMode.EQUAL) {
+            int n = e.getShares().size();
+            BigDecimal base = e.getAmount().divide(BigDecimal.valueOf(n), 10, RoundingMode.HALF_UP);
+            // round to cents and adjust last share for rounding diff
+            BigDecimal totalAssigned = BigDecimal.ZERO;
+            for (int i = 0; i < e.getShares().size(); i++) {
+                var s = e.getShares().get(i);
+                BigDecimal amt = base.setScale(2, RoundingMode.HALF_UP);
+                if (i == e.getShares().size() - 1) {
+                    amt = e.getAmount().subtract(totalAssigned).setScale(2, RoundingMode.HALF_UP);
+                }
+                s.setAmount(amt);
+                totalAssigned = totalAssigned.add(amt);
+            }
+        } else if (e.getSplitMode() == SplitMode.PERCENTAGE) {
+            BigDecimal totalAssigned = BigDecimal.ZERO;
+            for (int i = 0; i < e.getShares().size(); i++) {
+                var s = e.getShares().get(i);
+                if (s.getShareValue() == null) throw new IllegalArgumentException("Missing percentage value for share");
+                BigDecimal pct = BigDecimal.valueOf(s.getShareValue()).divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP);
+                BigDecimal amt = e.getAmount().multiply(pct);
+                amt = amt.setScale(2, RoundingMode.HALF_UP);
+                // last share adjust
+                if (i == e.getShares().size() - 1) {
+                    amt = e.getAmount().subtract(totalAssigned).setScale(2, RoundingMode.HALF_UP);
+                }
+                s.setAmount(amt);
+                totalAssigned = totalAssigned.add(amt);
+            }
+        } else if (e.getSplitMode() == SplitMode.EXACT) {  // changed from RATIO
+            double totalRatio = e.getShares().stream().mapToDouble(s -> s.getShareValue() == null ? 0.0 : s.getShareValue()).sum();
+            if (totalRatio <= 0) throw new IllegalArgumentException("Invalid exact amounts");
+            BigDecimal totalAssigned = BigDecimal.ZERO;
+            for (int i = 0; i < e.getShares().size(); i++) {
+                var s = e.getShares().get(i);
+                double v = s.getShareValue() == null ? 0.0 : s.getShareValue();
+                BigDecimal frac = BigDecimal.valueOf(v).divide(BigDecimal.valueOf(totalRatio), 10, RoundingMode.HALF_UP);
+                BigDecimal amt = e.getAmount().multiply(frac).setScale(2, RoundingMode.HALF_UP);
+                if (i == e.getShares().size() - 1) {
+                    amt = e.getAmount().subtract(totalAssigned).setScale(2, RoundingMode.HALF_UP);
+                }
+                s.setAmount(amt);
+                totalAssigned = totalAssigned.add(amt);
+            }
+        } else {
+            throw new IllegalArgumentException("Unsupported split mode");
+        }
+    }
 }

@@ -2,6 +2,6 @@ package ee.grouply.backend.domain;
 
 public enum SplitMode {
     EQUAL,
-    RATIO,
+    EXACT,      // changed from RATIO
     PERCENTAGE
 }

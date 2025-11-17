@@ -1,234 +1,208 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { createEvent } from "../api/expenses";
+import { uploadImage } from "../api/uploads";
 import "./NewEventPage.css";
 
-const apiBase = import.meta.env.VITE_API_BASE ?? "http://localhost:8080";
-
 export default function NewEventPage() {
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [dateTime, setDateTime] = useState(""); // YYYY-MM-DDTHH:mm
-    const [location, setLocation] = useState("");
-    const [capacity, setCapacity] = useState<number>(1);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [location, setLocation] = useState("");
+  const [capacity, setCapacity] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const navigate = useNavigate();
 
-    const [saving, setSaving] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+  const onFile = async (file: File) => {
+    setUploading(true);
+    try {
+      const url = await uploadImage(file);
+      setImageUrl(url);
+    } catch (e) {
+      console.error(e);
+      alert("Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
 
-    // image
-    const [imageUrl, setImageUrl] = useState("");
-    const [uploading, setUploading] = useState(false);
-    const [previewAbs, setPreviewAbs] = useState<string | null>(null);
-    const [dragOver, setDragOver] = useState(false);
+  const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (file) onFile(file);
+  };
 
-    const navigate = useNavigate();
+  const onBrowse = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) onFile(file);
+    e.target.value = "";
+  };
 
-    const normalizeDateTime = (dt: string) =>
-        dt && dt.length === 16 ? dt + ":00" : dt;
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    
+    if (!title.trim()) {
+      setError("Title is required");
+      return;
+    }
 
-    const toAbsolute = (u?: string) =>
-        !u
-            ? ""
-            : u.startsWith("http://") || u.startsWith("https://")
-                ? u
-                : `${apiBase}${u.startsWith("/") ? "" : "/"}${u}`;
+    try {
+      setSaving(true);
+      // Combine date + time if both present
+      let dateTime = null;
+      if (date && time) {
+        dateTime = `${date}T${time}:00`;
+      } else if (date) {
+        dateTime = `${date}T00:00:00`;
+      }
 
-    // upload (POST /api/uploads)
-    const uploadFile = async (file: File) => {
-        if (!file.type.startsWith("image/")) {
-            alert("Please select an image file (jpg, png, webp...)");
-            return;
-        }
-        if (file.size > 10 * 1024 * 1024) {
-            alert("File is too large (max 10MB)");
-            return;
-        }
+      await createEvent({
+        title,
+        description,
+        dateTime,
+        location,
+        capacity: capacity ? Number(capacity) : null,
+        imageUrl,
+      });
+      navigate("/events");
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
 
-        setUploading(true);
-        try {
-            const form = new FormData();
-            form.append("file", file);
+  return (
+    <div className="new-event-page">
+      <div className="new-event-container">
+        <h1>Create New Event</h1>
 
-            const res = await fetch(`${apiBase}/api/uploads`, {
-                method: "POST",
-                body: form,
-            });
-            if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
+        <div
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={onDrop}
+          style={{
+            border: "2px dashed #bbb",
+            borderRadius: 12,
+            padding: 24,
+            marginBottom: 16,
+            textAlign: "center",
+            background: "#fafafa",
+          }}
+        >
+          {imageUrl ? (
+            <img
+              src={(import.meta.env.VITE_API_BASE || "http://localhost:8080") + imageUrl}
+              alt="Event"
+              style={{ maxWidth: "100%", borderRadius: 8 }}
+            />
+          ) : (
+            <>
+              <div style={{ marginBottom: 8 }}>
+                Drag & drop an image here, or click to browse
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={onBrowse}
+                disabled={uploading}
+              />
+            </>
+          )}
+          {uploading && <div style={{ marginTop: 8 }}>Uploading…</div>}
+        </div>
 
-            const data = (await res.json()) as { url: string };
-            setImageUrl(data.url);
-            setPreviewAbs(toAbsolute(data.url));
-        } catch (err) {
-            console.error(err);
-            alert("Upload failed");
-        } finally {
-            setUploading(false);
-        }
-    };
+        <form onSubmit={handleSubmit} className="event-form">
+          <div className="field">
+            <label className="field__label">Title *</label>
+            <input
+              className="input"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Game Night"
+              required
+            />
+          </div>
 
-    const onPickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        await uploadFile(file);
-    };
+          <div className="field">
+            <label className="field__label">Description</label>
+            <textarea
+              className="input"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="What's the event about?"
+              rows={3}
+            />
+          </div>
 
-    const handleDroppedFiles = async (files: FileList | null) => {
-        if (!files || !files[0]) return;
-        await uploadFile(files[0]);
-    };
+          <div className="field">
+            <label className="field__label">Date</label>
+            <input
+              className="input"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </div>
 
-    const onSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(null);
-        if (!title.trim()) {
-            setError("Title is required");
-            return;
-        }
-        setSaving(true);
-        try {
-            const payload: Record<string, unknown> = {
-                title: title.trim(),
-                description: description.trim(),
-                dateTime: normalizeDateTime(dateTime),
-                location: location.trim(),
-                capacity: Number(capacity) || 0,
-            };
-            if (imageUrl.trim()) payload.imageUrl = imageUrl.trim();
+          <div className="field">
+            <label className="field__label">Time</label>
+            <input
+              className="input"
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+            />
+          </div>
 
-            const res = await fetch(`${apiBase}/api/events`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
-            if (!res.ok) throw new Error(`POST failed: ${res.status}`);
-            navigate("/");
-        } catch (e) {
-            setError(e instanceof Error ? e.message : "Save failed");
-        } finally {
-            setSaving(false);
-        }
-    };
+          <div className="field">
+            <label className="field__label">Location</label>
+            <input
+              className="input"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Where will it be?"
+            />
+          </div>
 
-    return (
-        <section className="page page--narrow">
-            <h1 className="page-title">Add event</h1>
+          <div className="field">
+            <label className="field__label">Capacity</label>
+            <input
+              className="input"
+              type="number"
+              value={capacity}
+              onChange={(e) => setCapacity(e.target.value)}
+              placeholder="Max participants"
+              min="1"
+            />
+          </div>
 
-            <form className="form-card" onSubmit={onSubmit}>
-                <div className="form-grid">
-                    <label className="field">
-                        <span className="field__label">Title *</span>
-                        <input
-                            className="input"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            required
-                        />
-                    </label>
+          {error && (
+            <div className="form-error">{error}</div>
+          )}
 
-                    <label className="field">
-                        <span className="field__label">Description</span>
-                        <textarea
-                            className="textarea"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            rows={3}
-                        />
-                    </label>
-
-                    <label className="field">
-                        <span className="field__label">Date & time</span>
-                        <input
-                            className="input"
-                            type="datetime-local"
-                            value={dateTime}
-                            onChange={(e) => setDateTime(e.target.value)}
-                        />
-                    </label>
-
-                    <label className="field">
-                        <span className="field__label">Location</span>
-                        <input
-                            className="input"
-                            value={location}
-                            onChange={(e) => setLocation(e.target.value)}
-                        />
-                    </label>
-
-                    <label className="field">
-                        <span className="field__label">Capacity</span>
-                        <input
-                            className="input"
-                            type="number"
-                            min={1}
-                            value={capacity}
-                            onChange={(e) => setCapacity(Number(e.target.value))}
-                        />
-                    </label>
-
-                    {/* Image */}
-                    <div className="field">
-                        <span className="field__label">Image (optional)</span>
-
-                        <div
-                            className={`dropzone ${dragOver ? "dropzone--active" : ""}`}
-                            onDragOver={(e) => {
-                                e.preventDefault();
-                                setDragOver(true);
-                            }}
-                            onDragLeave={() => setDragOver(false)}
-                            onDrop={async (e) => {
-                                e.preventDefault();
-                                setDragOver(false);
-                                await handleDroppedFiles(e.dataTransfer.files);
-                            }}
-                            onClick={() => document.getElementById("file-input-hidden")?.click()}
-                            role="button"
-                            tabIndex={0}
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter" || e.key === " ") {
-                                    e.preventDefault();
-                                    document.getElementById("file-input-hidden")?.click();
-                                }
-                            }}
-                        >
-                            {uploading
-                                ? "Uploading…"
-                                : dragOver
-                                    ? "Drop to upload"
-                                    : "Drag image here or click"}
-                        </div>
-
-                        <input
-                            id="file-input-hidden"
-                            type="file"
-                            accept="image/*"
-                            onChange={onPickFile}
-                            disabled={uploading}
-                            style={{ display: "none" }}
-                        />
-
-                        {previewAbs && !uploading && (
-                            <div className="image-preview">
-                                <img src={previewAbs} alt="Preview" />
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {error && <div className="form-error">{error}</div>}
-
-                <div className="form-actions">
-                    <button className="btn btn-primary" type="submit" disabled={saving}>
-                        {saving ? "Saving..." : "Create"}
-                    </button>
-                    <button
-                        className="btn btn-muted"
-                        type="button"
-                        onClick={() => navigate("/")}
-                    >
-                        Cancel
-                    </button>
-                </div>
-            </form>
-        </section>
-    );
+          <div className="form-actions">
+            <button
+              type="button"
+              className="btn"
+              onClick={() => navigate("/events")}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={saving}
+            >
+              {saving ? "Creating..." : "Create Event"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 }

@@ -19,5 +19,6 @@ public class ExpenseDTO {
         public Long userId;
         public String userName;
         public BigDecimal amount;
+        public Double value;
     }
 }
