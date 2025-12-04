@@ -34,6 +34,7 @@ build/
 
 ### Uploaded files ###
 /uploads/
+uploads/
 
 ### macOS ###
 .DS_Store

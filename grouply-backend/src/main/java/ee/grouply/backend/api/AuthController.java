@@ -41,7 +41,6 @@ public class AuthController {
         if (principal == null) return ResponseEntity.ok().build();
         var u = userRepo.findByEmail(principal.getUsername()).orElse(null);
         if (u == null) return ResponseEntity.notFound().build();
-        // Return a small DTO, never the entity
         return ResponseEntity.ok(new SimpleUserDTO(u.getId(), u.getEmail(), u.getName()));
     }
 

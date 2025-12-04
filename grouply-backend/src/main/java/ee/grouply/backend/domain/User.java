@@ -25,17 +25,11 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
-    /**
-     * Store hashed password. Keep nullable for users invited by email who didn't register yet.
-     */
     private String passwordHash;
 
     @OneToMany(mappedBy = "creator", fetch = FetchType.LAZY)
     private List<Event> createdEvents = new ArrayList<>();
 
-    /**
-     * inverse side of the many-to-many event participants relation
-     */
     @ManyToMany(mappedBy = "participants", fetch = FetchType.LAZY)
     private Set<Event> participatingEvents = new HashSet<>();
 

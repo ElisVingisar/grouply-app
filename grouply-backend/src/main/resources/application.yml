@@ -3,34 +3,39 @@ spring:
     name: grouply-backend
 
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/grouply}
-    username: ${DATABASE_USERNAME:grouply}
-    password: ${DATABASE_PASSWORD:pass}
-
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/grouply}
+    username: ${SPRING_DATASOURCE_USERNAME:grouply}
+    password: ${SPRING_DATASOURCE_PASSWORD:grouply}
+    driver-class-name: org.postgresql.Driver
+    
   jpa:
     hibernate:
-      ddl-auto: ${HIBERNATE_DDL_AUTO:update}
-    show-sql: ${SHOW_SQL:true}
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    show-sql: false
     properties:
-      hibernate.jdbc.time_zone: UTC
-
-  h2:
-    console:
-      enabled: false
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
   servlet:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
 
-grouply:
-  upload-dir: ${UPLOAD_DIR:uploads}
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
 
 jwt:
-  secret: ${JWT_SECRET:dev-secret-key-change-me-to-secure-one}
-  expiration-ms: ${JWT_EXPIRATION_MS:604800000} # 7 days
+  secret: ${JWT_SECRET:dev-secret-key-change-me-to-secure-one-minimum-256-bits}
+  expiration-ms: ${JWT_EXPIRATION_MS:604800000}
+
+server:
+  port: ${PORT:8080}
+
+upload:
+  directory: ${UPLOAD_DIRECTORY:uploads}
 
 logging:
   level:
-    ee.grouply.backend.security.JwtFilter: DEBUG
+    ee.grouply.backend: DEBUG
     org.springframework.security: WARN

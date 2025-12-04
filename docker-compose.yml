@@ -1,0 +1,86 @@
+services:
+  # ============================================
+  # PostgreSQL db
+  # ============================================
+  db:
+    image: postgres:15-alpine
+    container_name: grouply-db
+
+    environment:
+      POSTGRES_USER: grouply
+      POSTGRES_PASSWORD: grouply
+      POSTGRES_DB: grouply
+
+    ports:
+      - "5432:5432"
+    
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    
+    networks:
+      - grouply-network
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U grouply"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # Spring Boot backend
+  # ============================================
+  backend:
+    build:
+      context: ./grouply-backend
+      dockerfile: Dockerfile
+    
+    container_name: grouply-backend
+    
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/grouply
+      SPRING_DATASOURCE_USERNAME: grouply
+      SPRING_DATASOURCE_PASSWORD: grouply
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      JWT_SECRET: super-secret-jwt-key-minimum-256-bits-change-in-production
+      UPLOAD_DIRECTORY: /app/uploads
+    
+    ports:
+      - "8080:8080"
+    
+    depends_on:
+      db:
+        condition: service_healthy
+    
+    networks:
+      - grouply-network
+    
+    volumes:
+      - ./uploads:/app/uploads
+
+  # ============================================
+  # frontend
+  # ============================================
+  frontend:
+      build:
+        context: ./grouply-frontend
+        dockerfile: Dockerfile
+      container_name: grouply-frontend
+      ports:
+        - "5173:80"
+      depends_on:
+        - backend
+      networks:
+        - grouply-network
+
+# ============================================
+# VOLUMES
+# ============================================
+volumes:
+  postgres_data:
+
+# ============================================
+# NETWORKS
+# ============================================
+networks:
+  grouply-network:
+    driver: bridge

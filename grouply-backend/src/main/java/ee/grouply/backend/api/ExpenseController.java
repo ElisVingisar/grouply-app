@@ -75,7 +75,7 @@ public class ExpenseController {
                     sv.userId = s.getUser().getId();
                     sv.userName = s.getUser().getName();
                     sv.amount = s.getAmount();
-                    sv.value = s.getShareValue();  // ✅ ADD THIS LINE
+                    sv.value = s.getShareValue();
                     return sv;
                 }).collect(Collectors.toList()));
         return dto;

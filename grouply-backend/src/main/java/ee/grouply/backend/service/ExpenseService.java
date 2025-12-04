@@ -86,7 +86,7 @@ public class ExpenseService {
                 shares.add(share);
                 totalAssigned = totalAssigned.add(amt);
             }
-        } else if (dto.splitMode == SplitMode.EXACT) {  // changed from RATIO
+        } else if (dto.splitMode == SplitMode.EXACT) {
             double totalRatio = dto.shares.stream().mapToDouble(s -> s.value == null ? 0.0 : s.value).sum();
             if (totalRatio <= 0) throw new IllegalArgumentException("Invalid exact amounts");
             BigDecimal totalAssigned = BigDecimal.ZERO;
