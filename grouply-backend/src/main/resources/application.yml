@@ -32,6 +32,11 @@ jwt:
 server:
   port: ${PORT:8080}
 
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
+  
 upload:
   directory: ${UPLOAD_DIRECTORY:uploads}
 

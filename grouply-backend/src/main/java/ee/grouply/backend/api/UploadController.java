@@ -1,49 +1,52 @@
 package ee.grouply.backend.api;
 
-import org.springframework.http.MediaType;
+import ee.grouply.backend.service.CloudinaryService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/upload")
 public class UploadController {
 
-    private final Path uploadRoot = Path.of("uploads").toAbsolutePath().normalize();
+    private final CloudinaryService cloudinaryService;
 
-    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> upload(@RequestPart("file") MultipartFile file,
-                                    @AuthenticationPrincipal UserDetails user) throws IOException {
-        if (user == null) {
-            return ResponseEntity.status(401).build();
+    public UploadController(CloudinaryService cloudinaryService) {
+        this.cloudinaryService = cloudinaryService;
+    }
+
+    @PostMapping
+    public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) {
+        try {
+            String url = cloudinaryService.uploadImage(file);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("url", url);
+
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (IOException e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Upload failed: " + e.getMessage()));
         }
-        if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Empty file"));
+    }
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteImage(@RequestParam("url") String url) {
+        try {
+            String publicId = cloudinaryService.extractPublicId(url);
+            if (publicId == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid Cloudinary URL"));
+            }
+
+            cloudinaryService.deleteImage(publicId);
+            return ResponseEntity.ok(Map.of("message", "Image deleted"));
+        } catch (IOException e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Delete failed: " + e.getMessage()));
         }
-
-        Files.createDirectories(uploadRoot);
-
-        String original = StringUtils.cleanPath(file.getOriginalFilename() == null ? "file" : file.getOriginalFilename());
-        String ext = "";
-        int dot = original.lastIndexOf('.');
-        if (dot >= 0) ext = original.substring(dot);
-        String filename = System.currentTimeMillis() + "-" + Math.abs(original.hashCode()) + ext;
-
-        Path target = uploadRoot.resolve(filename);
-        try (var in = file.getInputStream()) {
-            Files.copy(in, target);
-        }
-
-        // WebConfig serves /files/** from uploads/
-        String publicPath = "/files/" + filename;
-        return ResponseEntity.ok(Map.of("url", publicPath));
     }
 }
