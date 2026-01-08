@@ -1,8 +1,8 @@
 package ee.grouply.backend.api;
 
-import ee.grouply.backend.domain.Expense;
 import ee.grouply.backend.dto.ExpenseCreateDTO;
 import ee.grouply.backend.dto.ExpenseDTO;
+import ee.grouply.backend.entity.Expense;
 import ee.grouply.backend.service.ExpenseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

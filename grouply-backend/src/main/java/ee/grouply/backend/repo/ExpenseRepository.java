@@ -1,7 +1,8 @@
 package ee.grouply.backend.repo;
 
-import ee.grouply.backend.domain.Expense;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import ee.grouply.backend.entity.Expense;
 
 import java.util.List;
 

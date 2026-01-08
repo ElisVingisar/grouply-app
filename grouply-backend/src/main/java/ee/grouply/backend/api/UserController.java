@@ -1,6 +1,6 @@
 package ee.grouply.backend.api;
 
-import ee.grouply.backend.domain.User;
+import ee.grouply.backend.entity.User;
 import ee.grouply.backend.repo.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

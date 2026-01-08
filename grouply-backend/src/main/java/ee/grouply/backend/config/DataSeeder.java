@@ -1,16 +1,12 @@
 package ee.grouply.backend.config;
 
-import ee.grouply.backend.dto.ExpenseCreateDTO;
-import ee.grouply.backend.domain.SplitMode;
-import ee.grouply.backend.domain.User;
+import ee.grouply.backend.entity.User;
 import ee.grouply.backend.repo.UserRepository;
 import ee.grouply.backend.service.ExpenseService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.math.BigDecimal;
-import java.util.List;
 
 @Component
 public class DataSeeder implements CommandLineRunner {

@@ -1,7 +1,8 @@
 package ee.grouply.backend.repo;
 
-import ee.grouply.backend.domain.Event;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import ee.grouply.backend.entity.Event;
 
 public interface EventRepository extends JpaRepository<Event, Long> {
 }

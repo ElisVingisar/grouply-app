@@ -1,8 +1,7 @@
 package ee.grouply.backend.service;
 
-import ee.grouply.backend.domain.*;
-import ee.grouply.backend.domain.SplitMode;
 import ee.grouply.backend.dto.*;
+import ee.grouply.backend.entity.*;
 import ee.grouply.backend.repo.*;
 import ee.grouply.backend.error.NotFoundException;
 

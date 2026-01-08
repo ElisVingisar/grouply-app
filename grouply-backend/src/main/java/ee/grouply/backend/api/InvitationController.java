@@ -1,9 +1,9 @@
 package ee.grouply.backend.api;
 
-import ee.grouply.backend.domain.EventInvitation;
-import ee.grouply.backend.domain.EventInvitation.InvitationStatus;
-import ee.grouply.backend.domain.Event;
-import ee.grouply.backend.domain.User;
+import ee.grouply.backend.entity.Event;
+import ee.grouply.backend.entity.EventInvitation;
+import ee.grouply.backend.entity.User;
+import ee.grouply.backend.entity.EventInvitation.InvitationStatus;
 import ee.grouply.backend.repo.EventRepository;
 import ee.grouply.backend.repo.InvitationRepository;
 import ee.grouply.backend.repo.UserRepository;

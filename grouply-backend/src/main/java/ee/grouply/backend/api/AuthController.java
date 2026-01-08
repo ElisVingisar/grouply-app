@@ -3,7 +3,7 @@ package ee.grouply.backend.api;
 import ee.grouply.backend.dto.AuthRequestDTO;
 import ee.grouply.backend.dto.AuthResponseDTO;
 import ee.grouply.backend.dto.RegisterDTO;
-import ee.grouply.backend.domain.User;
+import ee.grouply.backend.entity.User;
 import ee.grouply.backend.repo.UserRepository;
 import ee.grouply.backend.service.AuthService;
 import jakarta.validation.Valid;

@@ -1,4 +1,4 @@
-package ee.grouply.backend.domain;
+package ee.grouply.backend.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;

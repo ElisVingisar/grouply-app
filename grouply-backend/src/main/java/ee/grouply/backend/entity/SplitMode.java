@@ -1,4 +1,4 @@
-package ee.grouply.backend.domain;
+package ee.grouply.backend.entity;
 
 public enum SplitMode {
     EQUAL,

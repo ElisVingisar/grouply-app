@@ -1,9 +1,9 @@
 package ee.grouply.backend.api;
 
-import ee.grouply.backend.domain.Event;
-import ee.grouply.backend.domain.User;
 import ee.grouply.backend.dto.EventCreateDTO;
 import ee.grouply.backend.dto.EventDTO;
+import ee.grouply.backend.entity.Event;
+import ee.grouply.backend.entity.User;
 import ee.grouply.backend.repo.EventRepository;
 import ee.grouply.backend.repo.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,9 +23,9 @@ public class EventController {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    public EventController(EventRepository eventRepository) {
+    public EventController(EventRepository eventRepository, UserRepository userRepository) {
         this.eventRepository = eventRepository;
+        this.userRepository = userRepository;
     }
 
     // Adding a new event

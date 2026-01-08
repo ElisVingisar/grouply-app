@@ -1,7 +1,7 @@
 package ee.grouply.backend.api;
 
-import ee.grouply.backend.domain.Payment;
-import ee.grouply.backend.domain.User;
+import ee.grouply.backend.entity.Payment;
+import ee.grouply.backend.entity.User;
 import ee.grouply.backend.repo.PaymentRepository;
 import ee.grouply.backend.repo.UserRepository;
 import jakarta.validation.constraints.*;

@@ -17,7 +17,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        ee.grouply.backend.domain.User u = repo.findByEmail(username)
+        ee.grouply.backend.entity.User u = repo.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
         String password = u.getPasswordHash() == null ? "" : u.getPasswordHash();

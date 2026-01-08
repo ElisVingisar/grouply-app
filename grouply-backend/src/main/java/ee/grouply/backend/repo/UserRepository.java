@@ -1,7 +1,8 @@
 package ee.grouply.backend.repo;
 
-import ee.grouply.backend.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import ee.grouply.backend.entity.User;
 
 import java.util.Optional;
 

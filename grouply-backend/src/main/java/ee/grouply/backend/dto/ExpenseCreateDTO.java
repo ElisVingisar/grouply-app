@@ -1,10 +1,9 @@
 package ee.grouply.backend.dto;
 
-import ee.grouply.backend.domain.SplitMode;
-
-import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 import java.util.List;
+
+import ee.grouply.backend.entity.SplitMode;
 
 public class ExpenseCreateDTO {
     public Long eventId;

@@ -1,9 +1,11 @@
 package ee.grouply.backend.repo;
 
-import ee.grouply.backend.domain.EventInvitation;
-import ee.grouply.backend.domain.EventInvitation.InvitationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import ee.grouply.backend.entity.EventInvitation;
+import ee.grouply.backend.entity.EventInvitation.InvitationStatus;
+
 import java.util.List;
 import java.util.Optional;
 
