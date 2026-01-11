@@ -7,14 +7,12 @@ import ee.grouply.backend.entity.EventInvitation.InvitationStatus;
 import ee.grouply.backend.repo.EventRepository;
 import ee.grouply.backend.repo.InvitationRepository;
 import ee.grouply.backend.repo.UserRepository;
-import ee.grouply.backend.security.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -33,9 +31,6 @@ public class InvitationController {
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private CustomUserDetailsService userDetailsService;
 
     /**
      * Send invitation to a user by email

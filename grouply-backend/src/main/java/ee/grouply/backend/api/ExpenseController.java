@@ -4,7 +4,6 @@ import ee.grouply.backend.dto.ExpenseCreateDTO;
 import ee.grouply.backend.dto.ExpenseDTO;
 import ee.grouply.backend.entity.Expense;
 import ee.grouply.backend.service.ExpenseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,7 +15,6 @@ public class ExpenseController {
 
     private final ExpenseService expenseService;
 
-    @Autowired
     public ExpenseController(ExpenseService expenseService) {
         this.expenseService = expenseService;
     }

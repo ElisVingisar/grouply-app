@@ -11,7 +11,6 @@ public class AuthRequestDTO {
     @NotBlank
     private String password;
 
-    // getters/setters
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 

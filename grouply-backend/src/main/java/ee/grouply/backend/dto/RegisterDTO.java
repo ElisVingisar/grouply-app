@@ -16,7 +16,6 @@ public class RegisterDTO {
     @Size(min = 6)
     private String password;
 
-    // getters/setters
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 

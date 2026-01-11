@@ -11,7 +11,6 @@ public class EventDTO {
     private Integer capacity;
     private String imageUrl;
 
-    // Getters and setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     

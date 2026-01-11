@@ -2,7 +2,6 @@ package ee.grouply.backend.config;
 
 import ee.grouply.backend.entity.User;
 import ee.grouply.backend.repo.UserRepository;
-import ee.grouply.backend.service.ExpenseService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,12 +10,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Component
 public class DataSeeder implements CommandLineRunner {
     private final UserRepository userRepository;
-    private final ExpenseService expenseService;
     private final PasswordEncoder passwordEncoder;
 
-    public DataSeeder(UserRepository userRepository, ExpenseService expenseService, PasswordEncoder passwordEncoder) {
+    public DataSeeder(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-        this.expenseService = expenseService;
         this.passwordEncoder = passwordEncoder;
     }
 
