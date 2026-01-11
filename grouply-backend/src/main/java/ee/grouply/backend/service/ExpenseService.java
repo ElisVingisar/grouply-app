@@ -207,7 +207,6 @@ public class ExpenseService {
 
     private void calculateShares(Expense e) {
         // compute share amounts
-        List<ExpenseShare> shares = new ArrayList<>();
         if (e.getSplitMode() == SplitMode.EQUAL) {
             int n = e.getShares().size();
             BigDecimal base = e.getAmount().divide(BigDecimal.valueOf(n), 10, RoundingMode.HALF_UP);

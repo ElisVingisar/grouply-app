@@ -9,6 +9,7 @@ import ee.grouply.backend.dto.EventDTO;
 import ee.grouply.backend.repo.EventRepository;
 import ee.grouply.backend.repo.UserRepository;
 import ee.grouply.backend.entity.User;
+import ee.grouply.backend.error.ForbiddenException;
 import ee.grouply.backend.error.NotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 import ee.grouply.backend.dto.ParticipantDTO;
@@ -29,7 +30,7 @@ public class EventService {
 
     @Transactional
     public EventDTO createEvent(EventCreateDTO dto, String email) {
-        log.debug("Creating event'{}' for user {}", dto.getTitle(), email);
+        log.debug("Creating event '{}' for user {}", dto.getTitle(), email);
 
         User user = findUserByEmail(email);
 
@@ -45,7 +46,7 @@ public class EventService {
 
         Event saved = eventRepository.save(event);
 
-        log.info("Created event id={} title='{}'' by user={}", saved.getId(), saved.getTitle(), email);
+        log.info("Created event id={} title='{}' by user={}", saved.getId(), saved.getTitle(), email);
 
         return toDto(saved);
     }
@@ -64,30 +65,32 @@ public class EventService {
         return events.stream().map(this::toDto).toList();
     }
 
-    // TODO: Add auth - can the user see this?
     @Transactional(readOnly = true)
-    public EventDTO getEventById(Long id) {
-        log.debug("Fetching event id={}", id);
+    public EventDTO getEventById(Long id, String email) {
+        log.debug("Fetching event id={} for user {}", id, email);
 
+        User user = findUserByEmail(email);
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Event not found with id: " + id));
 
+        // Can the user see this event
+        if (!isUserRelatedToEvent(user, event)) {
+            throw new ForbiddenException("You don't have access to this event");
+        }
         return toDto(event);
     }
 
-    // TODO: Add auth - only creator can update
     @Transactional
     public EventDTO updateEvent(Long id, EventCreateDTO dto, String email) {
         log.debug("Updating event id={} by user {}", id, email);
 
+        User user = findUserByEmail(email);
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Event not found with id: " + id));
 
-        // TODO: Check if user is creator
-        // User user = findUserByEmail(email);
-        // if (!event.getCreator().getId().equals(user.getId())) {
-        //     throw new ForbiddenException("Only creator can update event");
-        // }
+        if (!isCreator(user, event)) {
+            throw new ForbiddenException("Only the creator can update this event");
+        }        
 
         event.setTitle(dto.getTitle());
         event.setDescription(dto.getDescription());
@@ -102,27 +105,33 @@ public class EventService {
         return toDto(saved);
     }
 
-    // TODO: Add auth - only creator can delete
     @Transactional
     public void deleteEvent(Long id, String email) {
         log.debug("Deleting event id={} by user {}", id, email);
 
-        if (!eventRepository.existsById(id)) {
-            throw new NotFoundException("Event not found with id: " + id);
-        }
+        User user = findUserByEmail(email);
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Event not found with id: " + id));
 
-        // TODO: Check if user is creator
+        if (!isCreator(user, event)) {
+            throw new ForbiddenException("Only the creator can delete this event");
+        }
 
         eventRepository.deleteById(id);
         log.info("Deleted event id={}", id);
     }
 
     @Transactional(readOnly = true)
-    public List<ParticipantDTO> getParticipants(Long eventId) {
+    public List<ParticipantDTO> getParticipants(Long eventId, String email) {
         log.debug("Fetching participants for event id={}", eventId);
 
+        User user = findUserByEmail(email);
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event not found with id: " + eventId));
+
+        if (!isUserRelatedToEvent(user, event)) {
+            throw new ForbiddenException("You don't have access to this event");
+        }
 
         return event.getParticipants().stream()
                 .map(u -> new ParticipantDTO(u.getId(), u.getName(), u.getEmail()))
@@ -130,16 +139,26 @@ public class EventService {
     }
 
 
+    // ══════════════════════════════════════════════════════════════════
+    // PRIVATE HELPER METHODS
+    // ══════════════════════════════════════════════════════════════════
+
     private User findUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("User not found: " + email));
     }
 
     private boolean isUserRelatedToEvent(User user, Event event) {
-        boolean isCreator = event.getCreator() != null
+        return isCreator(user, event) || isParticipant(user, event);
+    }
+
+    private boolean isCreator(User user, Event event) {
+        return event.getCreator() != null
                 && event.getCreator().getId().equals(user.getId());
-        boolean isParticipant = event.getParticipants().contains(user);
-        return isCreator || isParticipant;
+    }
+
+    private boolean isParticipant(User user, Event event) {
+        return event.getParticipants().contains(user);
     }
 
     private EventDTO toDto(Event event) {

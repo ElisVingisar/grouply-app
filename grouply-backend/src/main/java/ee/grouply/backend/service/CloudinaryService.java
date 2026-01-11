@@ -42,8 +42,9 @@ public class CloudinaryService {
         }
 
         try {
-            // Upload to Cloudinary (LIHTNE VERSIOON - ilma transformation'ita)
-            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+            // Upload to Cloudinary
+            @SuppressWarnings("unchecked")
+            Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
                 "folder", "grouply",
                 "resource_type", "image",
                 "quality", "auto:good"     // Auto optimize quality

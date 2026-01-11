@@ -40,8 +40,10 @@ public class EventController {
 
     // One event
     @GetMapping("/{id}")
-    public EventDTO getEvent(@PathVariable Long id) {
-        return eventService.getEventById(id);
+    public EventDTO getEvent(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        return eventService.getEventById(id, currentUser.getUsername());
     }
 
     // Update event
@@ -66,8 +68,10 @@ public class EventController {
 
 
     @GetMapping("/{eventId}/participants")
-    public List<ParticipantDTO> getParticipants(@PathVariable Long eventId) {
-        return eventService.getParticipants(eventId);
+    public List<ParticipantDTO> getParticipants(
+            @PathVariable Long eventId,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        return eventService.getParticipants(eventId, currentUser.getUsername());
     }
 
 }
