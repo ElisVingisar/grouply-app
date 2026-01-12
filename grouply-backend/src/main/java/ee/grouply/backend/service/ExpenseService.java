@@ -3,33 +3,46 @@ package ee.grouply.backend.service;
 import ee.grouply.backend.dto.*;
 import ee.grouply.backend.entity.*;
 import ee.grouply.backend.repo.*;
+import ee.grouply.backend.error.ForbiddenException;
 import ee.grouply.backend.error.NotFoundException;
-
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class ExpenseService {
+
+    private static final Logger log = LoggerFactory.getLogger(ExpenseService.class);
+
     private final UserRepository userRepository;
     private final ExpenseRepository expenseRepository;
     private final PaymentRepository paymentRepository;
+    private final EventRepository eventRepository;
 
     public ExpenseService(UserRepository userRepository,
                           ExpenseRepository expenseRepository,
                           ExpenseShareRepository shareRepository,
-                          PaymentRepository paymentRepository) {
+                          PaymentRepository paymentRepository,
+                          EventRepository eventRepository) {
         this.userRepository = userRepository;
         this.expenseRepository = expenseRepository;
         this.paymentRepository = paymentRepository;
+        this.eventRepository = eventRepository;
     }
 
     @Transactional
-    public Expense createExpense(ExpenseCreateDTO dto) {
+    public ExpenseDTO createExpense(ExpenseCreateDTO dto, String userEmail) {
+        log.debug("Creating expense for event {}, payer {}, by user {}", 
+                dto.eventId, dto.payerId, userEmail);
+
+        checkEventAccess(dto.eventId, userEmail);
+
         var payer = userRepository.findById(dto.payerId)
                 .orElseThrow(() -> new IllegalArgumentException("Payer not found"));
         // validate participants exist
@@ -112,55 +125,66 @@ public class ExpenseService {
         e.setShares(shares);
         var saved = expenseRepository.save(e);
 
-        return saved;
+        log.info("Expense {} created for event {}", saved.getId(), dto.eventId);
+        return toDTO(saved);
     }
 
-    public List<Expense> listByEvent(Long eventId) {
-        return expenseRepository.findByEventIdOrderByCreatedAtDesc(eventId);
+    public List<ExpenseDTO> listByEvent(Long eventId, String userEmail) {
+
+        checkEventAccess(eventId, userEmail);
+
+        return expenseRepository.findByEventIdOrderByCreatedAtDesc(eventId)
+                .stream()
+                .map(this::toDTO)
+                .toList();
     }
 
     public Map<Long, BigDecimal> computeBalancesForEvent(Long eventId) {
-    Map<Long, BigDecimal> balances = new HashMap<>();
-    
-    // Get all expenses for this event
-    var expenses = expenseRepository.findByEventIdOrderByCreatedAtDesc(eventId);
-    
-    for (var e : expenses) {
-        var payerId = e.getPayer().getId();
-        // Change: payer gets positive amount (they paid more than they should)
-        balances.putIfAbsent(payerId, BigDecimal.ZERO);
-        balances.put(payerId, balances.get(payerId).subtract(e.getAmount()));
+        Map<Long, BigDecimal> balances = new HashMap<>();
         
-        // Each participant's share is a negative amount (they owe money)
-        for (var s : e.getShares()) {
-            var uid = s.getUser().getId();
-            balances.putIfAbsent(uid, BigDecimal.ZERO);
-            balances.put(uid, balances.get(uid).add(s.getAmount()));
+        // Get all expenses for this event
+        var expenses = expenseRepository.findByEventIdOrderByCreatedAtDesc(eventId);
+        
+        for (var e : expenses) {
+            var payerId = e.getPayer().getId();
+            // Change: payer gets positive amount (they paid more than they should)
+            balances.putIfAbsent(payerId, BigDecimal.ZERO);
+            balances.put(payerId, balances.get(payerId).subtract(e.getAmount()));
+            
+            // Each participant's share is a negative amount (they owe money)
+            for (var s : e.getShares()) {
+                var uid = s.getUser().getId();
+                balances.putIfAbsent(uid, BigDecimal.ZERO);
+                balances.put(uid, balances.get(uid).add(s.getAmount()));
+            }
         }
+        
+        // Payments reduce balances
+        var payments = paymentRepository.findByEventId(eventId);
+        for (var p : payments) {
+            if (!p.isSettled()) continue;
+            var from = p.getFromUser().getId();
+            var to = p.getToUser().getId();
+            balances.putIfAbsent(from, BigDecimal.ZERO);
+            balances.putIfAbsent(to, BigDecimal.ZERO);
+            // From user reduces their negative balance
+            balances.put(from, balances.get(from).subtract(p.getAmount()));
+            // To user reduces their positive balance
+            balances.put(to, balances.get(to).add(p.getAmount()));
+        }
+        
+        return balances;
     }
-    
-    // Payments reduce balances
-    var payments = paymentRepository.findByEventId(eventId);
-    for (var p : payments) {
-        if (!p.isSettled()) continue;
-        var from = p.getFromUser().getId();
-        var to = p.getToUser().getId();
-        balances.putIfAbsent(from, BigDecimal.ZERO);
-        balances.putIfAbsent(to, BigDecimal.ZERO);
-        // From user reduces their negative balance
-        balances.put(from, balances.get(from).subtract(p.getAmount()));
-        // To user reduces their positive balance
-        balances.put(to, balances.get(to).add(p.getAmount()));
-    }
-    
-    return balances;
-}
 
     /**
      * Update an existing expense
      */
     @Transactional
-    public Expense updateExpense(Long expenseId, ExpenseCreateDTO dto) {
+    public ExpenseDTO updateExpense(Long expenseId, ExpenseCreateDTO dto, String userEmail) {
+        log.debug("Updating expense {} by user {}", expenseId, userEmail);
+
+        checkEventAccess(dto.eventId, userEmail);
+
         Expense expense = expenseRepository.findById(expenseId)
                 .orElseThrow(() -> new NotFoundException("Expense not found"));
 
@@ -191,18 +215,23 @@ public class ExpenseService {
         // Recalculate share amounts
         calculateShares(expense);
 
-        return expenseRepository.save(expense);
+        return toDTO(expenseRepository.save(expense));
     }
 
     /**
      * Delete an expense
      */
     @Transactional
-    public void deleteExpense(Long expenseId) {
+    public void deleteExpense(Long expenseId, Long eventId, String userEmail) {
+        log.debug("Deleting expense {} by user {}", expenseId, userEmail);
+
+        checkEventAccess(eventId, userEmail);
+
         if (!expenseRepository.existsById(expenseId)) {
             throw new NotFoundException("Expense not found");
         }
         expenseRepository.deleteById(expenseId);
+        log.info("Expense {} deleted", expenseId);
     }
 
     private void calculateShares(Expense e) {
@@ -253,6 +282,56 @@ public class ExpenseService {
             }
         } else {
             throw new IllegalArgumentException("Unsupported split mode");
+        }
+    }
+
+    private ExpenseDTO toDTO(Expense e) {
+        ExpenseDTO dto = new ExpenseDTO();
+        dto.id = e.getId();
+        dto.eventId = e.getEventId();
+        dto.payerId = e.getPayer().getId();
+        dto.payerName = e.getPayer().getName();
+        dto.amount = e.getAmount();
+        dto.description = e.getDescription();
+        dto.splitMode = e.getSplitMode().name();
+        dto.createdAt = e.getCreatedAt();
+        dto.shares = (e.getShares() == null ? List.of() :
+                e.getShares().stream().map(s -> {
+                    ExpenseDTO.ShareView sv = new ExpenseDTO.ShareView();
+                    sv.userId = s.getUser().getId();
+                    sv.userName = s.getUser().getName();
+                    sv.amount = s.getAmount();
+                    sv.value = s.getShareValue();
+                    return sv;
+                }).collect(Collectors.toList()));
+        return dto;
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // Authorization helpers
+    // ══════════════════════════════════════════════════════════════════
+
+    private User findUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("User not found: " + email));
+    }
+
+    private Event findEventById(Long eventId) {
+        return eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event not found: " + eventId));
+    }
+
+    private void checkEventAccess(Long eventId, String userEmail) {
+        User user = findUserByEmail(userEmail);
+        Event event = findEventById(eventId);
+        
+        boolean isCreator = event.getCreator() != null 
+                && event.getCreator().getId().equals(user.getId());
+        boolean isParticipant = event.getParticipants().contains(user);
+        
+        if (!isCreator && !isParticipant) {
+            log.warn("User {} denied access to event {}", userEmail, eventId);
+            throw new ForbiddenException("You don't have access to this event");
         }
     }
 }

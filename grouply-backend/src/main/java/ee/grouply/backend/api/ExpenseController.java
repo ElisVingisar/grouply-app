@@ -2,12 +2,13 @@ package ee.grouply.backend.api;
 
 import ee.grouply.backend.dto.ExpenseCreateDTO;
 import ee.grouply.backend.dto.ExpenseDTO;
-import ee.grouply.backend.entity.Expense;
 import ee.grouply.backend.service.ExpenseService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/events/{eventId}/expenses")
@@ -20,62 +21,38 @@ public class ExpenseController {
     }
 
     @PostMapping
-    public ExpenseDTO createExpense(@PathVariable Long eventId, @RequestBody ExpenseCreateDTO body) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public ExpenseDTO createExpense(
+            @PathVariable Long eventId,
+            @RequestBody @Valid ExpenseCreateDTO body,
+            @AuthenticationPrincipal UserDetails currentUser) {
         body.eventId = eventId;
-        Expense created = expenseService.createExpense(body);
-        return toDTO(created);
+        return expenseService.createExpense(body, currentUser.getUsername());
     }
 
     @GetMapping
-    public List<ExpenseDTO> listExpenses(@PathVariable Long eventId) {
-        return expenseService.listByEvent(eventId).stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
+    public List<ExpenseDTO> listExpenses(
+            @PathVariable Long eventId,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        return expenseService.listByEvent(eventId, currentUser.getUsername());
     }
 
-    /**
-     * Update an existing expense
-     * PUT /api/events/{eventId}/expenses/{expenseId}
-     */
     @PutMapping("/{expenseId}")
     public ExpenseDTO updateExpense(
             @PathVariable Long eventId,
             @PathVariable Long expenseId,
-            @RequestBody ExpenseCreateDTO body
-    ) {
+            @RequestBody @Valid ExpenseCreateDTO body,
+            @AuthenticationPrincipal UserDetails currentUser) {
         body.eventId = eventId;
-        Expense updated = expenseService.updateExpense(expenseId, body);
-        return toDTO(updated);
+        return expenseService.updateExpense(expenseId, body, currentUser.getUsername());
     }
 
-    /**
-     * Delete an expense
-     * DELETE /api/events/{eventId}/expenses/{expenseId}
-     */
     @DeleteMapping("/{expenseId}")
-    public void deleteExpense(@PathVariable Long eventId, @PathVariable Long expenseId) {
-        expenseService.deleteExpense(expenseId);
-    }
-
-    private ExpenseDTO toDTO(Expense e) {
-        ExpenseDTO dto = new ExpenseDTO();
-        dto.id = e.getId();
-        dto.eventId = e.getEventId();
-        dto.payerId = e.getPayer().getId();
-        dto.payerName = e.getPayer().getName();
-        dto.amount = e.getAmount();
-        dto.description = e.getDescription();
-        dto.splitMode = e.getSplitMode().name();
-        dto.createdAt = e.getCreatedAt();
-        dto.shares = (e.getShares() == null ? List.of() :
-                e.getShares().stream().map(s -> {
-                    ExpenseDTO.ShareView sv = new ExpenseDTO.ShareView();
-                    sv.userId = s.getUser().getId();
-                    sv.userName = s.getUser().getName();
-                    sv.amount = s.getAmount();
-                    sv.value = s.getShareValue();
-                    return sv;
-                }).collect(Collectors.toList()));
-        return dto;
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteExpense(
+            @PathVariable Long eventId,
+            @PathVariable Long expenseId,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        expenseService.deleteExpense(expenseId, eventId, currentUser.getUsername());
     }
 }
