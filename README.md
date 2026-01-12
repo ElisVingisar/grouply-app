@@ -1,15 +1,20 @@
 # Grouply
 
-Grouply is a personal project I started to explore full-stack development and create something that fits my own needs.  
-The idea is to build a simple yet flexible platform for organizing events, managing participants, and keeping everything related to shared activities in one place.
+Grouply is a personal project I started to explore full-stack development and create something that fits my own needs. It is an expense splitting application for events and groups.
 
-### Goals
-- Strengthen my full-stack skills using **React** and **Spring Boot**
-- Develop a real, working application based on my own workflow and ideas  
-- Keep learning, experimenting, and improving through hands-on practice
+### Tech Stack
+**Backend**: Java 21, Spring Boot 3.5, PostgreSQL, Spring Security + JWT <br>
+**Frontend**: React 19, TypeScript, Vite <br>
+**Infrastructure**: Docker, Cloudinary (images)
+
+### Features
+* Create and manage events
+* Invite participants
+* Add expenses with three split modes (equal, percentage, exact amounts)
+* Calculate balances and settlements
 
 ### Status
-The project is currently under active development.  
+Currently refactoring and adding tests.
 
 ---
 
